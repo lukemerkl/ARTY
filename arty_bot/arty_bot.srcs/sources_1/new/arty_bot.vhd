@@ -23,6 +23,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.all;
 
+library myLib;
+use myLib.all;
+
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
 --use IEEE.NUMERIC_STD.ALL;
@@ -42,12 +45,15 @@ entity arty_bot is
            LED2 : out STD_LOGIC;
            LED3 : out STD_LOGIC;
            
+           
            MOTOR :  out STD_LOGIC;
+           --SERVO : out STD_LOGIC;
            sw : in STD_LOGIC;
            sw2 : in STD_LOGIC;
            btn_u : in STD_LOGIC;
            --btn_rst : in STD_LOGIC;
            btn_d : in STD_LOGIC);
+           
 end arty_bot;
 
 architecture Behavioral of arty_bot is
@@ -72,6 +78,8 @@ architecture Behavioral of arty_bot is
     signal btn_u_event : STD_LOGIC := '0';
     signal btn_d_event : STD_LOGIC := '0';
     signal pulse : STD_LOGIC_VECTOR(2 downto 0) := "001";
+    signal duty : STD_LOGIC_VECTOR(7 downto 0);
+
     
     signal btn_ct : unsigned(7 downto 0) := (others=> '0');
     signal i_btn_u : STD_LOGIC := '0';
@@ -81,24 +89,52 @@ architecture Behavioral of arty_bot is
     signal i_btn_d : STD_LOGIC := '0';
     signal o_btn_d : STD_LOGIC := '0';
     signal o_btn_lk_d : STD_LOGIC := '0';
-    
-    
+    signal ena       :   STD_LOGIC:='0'; 
+    signal pwm_n_out : STD_LOGIC_VECTOR(0 DOWNTO 0);
     --constant pwm_start : unsigned(31 downto 0) := to_unsigned(100_000_000, 32);
     constant pwm_period : unsigned(31 downto 0) := to_unsigned(100_000_000, 32);
     signal pwm_slider : unsigned(31 downto 0) := pwm_period/2;
 
-
+    
     
     signal up_ctr : unsigned(31 downto 0) := (others => '0');
+    signal f_ctr : unsigned(31 downto 0) := (others => '0');
+
     signal dwn_ctr : unsigned(31 downto 0) := clk_div1;
     
     signal pwm_u_ctr : unsigned(31 downto 0) := (others => '0');
     signal pwm_d_ctr : unsigned(31 downto 0) := clk_div1;
     
+    
+        
+--    COMPONENT pwm 
+--    generic(
+--          sys_clk         : INTEGER := 50_000_000; --system clock frequency in Hz
+--          pwm_freq        : INTEGER := 100_000;    --PWM switching frequency in Hz
+--          bits_resolution : INTEGER := 8;          --bits of resolution setting the duty cycle
+--          phases          : INTEGER := 1);         --number of output pwms and phases
+    
+    
+--    port(clk       : IN  STD_LOGIC;                                    --system clock
+--          reset_n   : IN  STD_LOGIC;                                    --asynchronous reset
+--                 : IN  STD_LOGIC;                                    --latches in new duty cycle
+--          duty      : IN  STD_LOGIC_VECTOR(bits_resolution-1 DOWNTO 0); --duty cycle
+--          pwm_out   : OUT STD_LOGIC_VECTOR(phases-1 DOWNTO 0);          --pwm outputs
+--          pwm_n_out : OUT STD_LOGIC_VECTOR(phases-1 DOWNTO 0));         --pwm inverse outputs
+    
+--    end component;
+-- Component does not seem like the right way to do this.. 
+-- trying entity work.pwm
 
 begin
 --    state : process(CLK100MHZ)
+    U1 : entity work.pwm port map(  clk=>CLK100MHZ, 
+                                     reset_n=>PWM_RST, 
+                                    ena => ena, 
+                                    duty => duty, 
+                                     pwm_n_out => pwm_n_out);
 
+    
     heartbeat : process (CLK100MHZ) is
         
         variable hb : unsigned(31 downto 0) := to_unsigned(50_000_000, 32);
@@ -153,7 +189,7 @@ begin
     end process heartbeat;
     
     
-    blink : process(CLK100MHZ) is
+    blink_led : process(CLK100MHZ) is
     
         variable clk_div : unsigned(31 downto 0) := to_unsigned(500_000_000, 32);
 
@@ -194,7 +230,7 @@ begin
             LEDR <= '1';
         end if;
     
-    end process blink;
+    end process blink_led;
     
     
    up_btn_db : process(CLK100MHZ, btn_u)  is
@@ -338,14 +374,12 @@ begin
         end if;
         
         if on_off = '1' then
-            MOTOR <= '1';
+            --MOTOR <= '1';
          else
-            MOTOR <= '0';
+            --MOTOR <= '0';
         end if;
         
-        
-        
-    
+       
     end process pwm_ctl;    
     
     
