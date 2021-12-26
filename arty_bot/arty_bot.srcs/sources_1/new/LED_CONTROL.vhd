@@ -36,8 +36,8 @@ use IEEE.NUMERIC_STD.all;
 
 ENTITY pwm IS
   GENERIC(
-      sys_clk         : INTEGER := 50_000_000; --system clock frequency in Hz
-      pwm_freq        : INTEGER := 100_000;    --PWM switching frequency in Hz
+      sys_clk         : INTEGER := 100_000_000; --system clock frequency in Hz
+      pwm_freq        : INTEGER := 30;    --PWM switching frequency in Hz
       bits_resolution : INTEGER := 8;          --bits of resolution setting the duty cycle
       phases          : INTEGER := 1);         --number of output pwms and phases
   PORT(
